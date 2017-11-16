@@ -1,0 +1,10 @@
+.idea/*
+app/cache/*
+app/cache/compiled/backend/
+app/cache/compiled/frontend/
+app/cache/logs
+app/cache/logs/
+app/cache/logs/*
+app/cache/data/
+app/cache/uploads/
+.idea/workspace.xml

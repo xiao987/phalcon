@@ -1,0 +1,237 @@
+<div class="breadcrumbs" id="breadcrumbs">
+    <ul class="breadcrumb">
+        <li>
+            <i class="icon-home home-icon"></i>
+            <a href="{{ url('dashboard/index') }}">控制面板</a>
+        </li>
+        <li>
+            <a href="{{ url('menu/index') }}">导航管理</a>
+        </li>
+    </ul>
+</div>
+<div class="page-content">
+    <div class="page-header">
+        <h1>
+            <a href="{{ url('menu/index') }}">导航管理</a>
+            <small>
+                <i class="icon-double-angle-right"></i>
+                {% if menu is not empty %}
+                    编辑菜单
+                {% else %}
+                    新增菜单
+                {% endif %}
+            </small>
+        </h1>
+    </div>
+    <div class="col-lg-12">
+        <form action="{{url('menu/save')}}" method="post" class="form-horizontal" id="menu-form">
+            <div class="form-group has-feedback">
+                <label for="menu-name" class="col-sm-2 control-label">菜单名称</label>
+                <div class="col-sm-5">
+                    <input type="text" name="name" {% if menu is not empty %}value="{{menu['name']}}"{% endif %}
+                           class="form-control" id="menu-name" placeholder="请填写菜单名称">
+                </div>
+            </div>
+            <div class="form-group ">
+                <label for="menu-url" class="col-sm-2 control-label">链接</label>
+                <div class="col-sm-5">
+                    <input type="text" name="url" {% if menu is not empty %}value="{{menu['url']}}"{% endif %}
+                           class="form-control" id="menu-url" placeholder="顶级菜单请填写‘#’,其它如：index/index">
+                </div>
+            </div>
+            <fieldset>
+                <div class="form-group">
+                    <label for="menu-parent" class="col-sm-2 control-label">父级菜单</label>
+                    <div class="col-sm-5">
+
+                        <select class="form-control" name="parentid">
+
+                            <option>请选择</option>
+                            {% for value in menuList %}
+                            {% if substr_count(value['path'], '/')<4 %}
+                            {% if menu['parent_id'] != value['id'] %}
+                                {% if menu is not empty and menu['parent_id'] == value['id'] %}
+                                    <option value="{{value['id']}}" selected="selected">
+                                {% elseif value['id'] == parentid %}
+
+                                    <option value="{{value['id']}}" selected="selected">
+                                {% else %}
+                                    <option value="{{value['id']}}">
+                                {% endif %}
+
+                                {% if value['parent_id'] > 0 %}
+
+                                    ├─{{ str_repeat('─', substr_count(value['path'], '/')) }}
+                                    {{value['name']}}
+                                {% else %}
+                                    ├─{{value['name']}}
+                                {% endif %}
+
+                                </option>
+                            {% endif %}
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </fieldset>
+            <div class="form-group">
+                <label for="menu-sort" class="col-sm-2 control-label">模块</label>
+                <div class="col-sm-5">
+                    <input type="text" name="model" {% if menu is not empty %}value="{{menu['model']}}"{% endif %}
+                           class="form-control" id="menu-sort" placeholder="模块名,如：admin" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="menu-sort" class="col-sm-2 control-label">控制器</label>
+                <div class="col-sm-5">
+                    <input type="text" name="controller" {% if menu is not empty %}value="{{menu['controller']}}"{% endif %}
+                           class="form-control" id="menu-sort" placeholder="对应控制器名,如：controller" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="menu-sort" class="col-sm-2 control-label">方法</label>
+                <div class="col-sm-5">
+                    <input type="text" name="action" {% if menu is not empty %}value="{{menu['action']}}"{% endif %}
+                           class="form-control" id="menu-sort" placeholder="对应方法名,如：index" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="menu-sort" class="col-sm-2 control-label">菜单排序</label>
+                <div class="col-sm-5">
+                    <input type="text" name="sort" {% if menu is not empty %}value="{{menu['sort']}}"{% endif %}
+                           class="form-control" id="menu-sort" placeholder="999" />
+                    <span class="form-tips">数字越小，菜单排序越靠前。排序区间为1-999</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-5">
+                    {% if menu['id'] is not empty %}
+                        <input type="hidden" name="id" value="{{menu['id']}}" />
+                        <button type="button" id="menu-btn" class="btn btn-info btn-sm">保存菜单</button>
+                    {% else %}
+                        <button type="button" id="menu-btn" class="btn btn-info btn-sm">新增菜单</button>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    $('#menu-btn').click(function(){
+        var bootstrapValidator = $("#menu-form").data('bootstrapValidator');
+        bootstrapValidator.validate();
+        if(bootstrapValidator.isValid()){
+            var data=$('#menu-form').serialize();
+            var submitData=decodeURIComponent(data,true);
+            $.ajax({
+                type: "POST",
+                url: "{{url('ajax/menu/add')}}",
+                data: submitData,
+                success: function(msg){
+                    if(msg.code == '300'){
+                        console.log(msg);
+                        tips_message(msg.message,'warning');
+                    }else if(msg.code =='200'){
+                        console.log(msg);
+                        tips_message(msg.message,'success');
+                    }else {
+                        console.log(msg);
+                        tips_message(msg.message,'error');
+                    }
+                }
+            });
+        }else {
+            return;
+        }
+    });
+
+    $(document).ready(function() {
+        $('#menu-form')
+            .bootstrapValidator({
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    name: {
+                        message: '4到20个字符',
+                        validators: {
+                            notEmpty: {
+                                message: '用户名不能为空'
+                            },
+                            stringLength: {
+                                min: 2,
+                                max: 10,
+                                message: '2到10个字符'
+                            },
+                        }
+
+                    },
+                    url: {
+                        message: '2到10个字符',
+                        validators: {
+                            notEmpty: {
+                                message: '顶级菜单请填写‘#’,其它如：index/index'
+                            },
+                            regexp: {
+                                regexp: /^[a-zA-z\#_\/]+$/,
+                                message: '请输入正确的url路径'
+                            }
+                        }
+                    },
+                    model: {
+                        message: '2到10个字符',
+                        validators: {
+                            notEmpty: {
+                                message: '模块名,如：admin'
+                            },
+                            regexp: {
+                                regexp: /^[A-Za-z_\/]+$/,
+                                message: '请输入正确的模块名,如：admin'
+                            }
+                        }
+                    },
+                    controller: {
+                        message: '2到10个字符',
+                        validators: {
+                            notEmpty: {
+                                message: '对应控制器名,如：controller'
+                            },
+                            regexp: {
+                                regexp: /^[A-Za-z_\/]+$/,
+                                message: '请输入正确的模块名,如：admin'
+                            }
+                        }
+                    },
+                    action: {
+                        message: '2到10个字符',
+                        validators: {
+                            notEmpty: {
+                                message: '对应方法名,如：index'
+                            },
+                            regexp: {
+                                regexp: /^[A-Za-z_\/]+$/,
+                                message: '请输入正确的模块名,如：admin'
+                            }
+                        }
+                    },
+                    sort: {
+                        message: '2到10个字符',
+                        validators: {
+                            notEmpty: {
+                                message: '不能为空！'
+                            },
+                            stringLength: {
+                                min: 1,
+                                max: 3,
+                                message: '数字越小，菜单排序越靠前，排序区间为1-999'
+                            },
+                        }
+                    },
+                }
+            })
+    });
+</script>

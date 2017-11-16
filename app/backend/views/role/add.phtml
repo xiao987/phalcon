@@ -1,0 +1,123 @@
+<div class="breadcrumbs" id="breadcrumbs">
+    <ul class="breadcrumb">
+        <li>
+            <i class="icon-home home-icon"></i>
+            <a href="{{ url('dashboard/index') }}">控制面板</a>
+        </li>
+        <li>
+            <a href="{{ url('menu/index') }}">导航管理</a>
+        </li>
+    </ul>
+</div>
+<div class="page-content">
+    <div class="page-header">
+        <h1>
+            <a href="{{ url('menu/index') }}">导航管理</a>
+            <small>
+                <i class="icon-double-angle-right"></i>
+                {% if menu is not empty %}
+                    编辑角色
+                {% else %}
+                    新增角色
+                {% endif %}
+            </small>
+        </h1>
+    </div>
+    <div class="col-lg-12">
+        <form action="#" method="post" class="form-horizontal" id="menu-form">
+            <div class="form-group has-feedback">
+                <label for="menu-name" class="col-sm-2 control-label">角色名称</label>
+                <div class="col-sm-5">
+                    <input type="text" name="title" {% if menu is not empty %}value="{{menu['menu_name']}}"{% endif %}
+                           class="form-control" id="menu-name" name="username"  placeholder="请填角色名称">
+                </div>
+            </div>  <div class="form-group has-feedback">
+                <label for="menu-name" class="col-sm-2 control-label">角色描述</label>
+                <div class="col-sm-5">
+                    <input type="text" name="description" {% if menu is not empty %}value="{{menu['menu_name']}}"{% endif %}
+                           class="form-control" id="menu-name" name="descriptrion" placeholder="请填写角色描述">
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-5">
+                    {% if menu['id'] is not empty %}
+                        <input type="hidden" name="id" value="{{menu['id']}}" />
+                        <button type="button" id="menu-btn" class="btn btn-info btn-sm">保存角色</button>
+                    {% else %}
+                        <button type="button" id="menu-btn"  class="btn btn-info btn-sm">新增角色</button>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    $('#menu-btn').click(function(){
+        var bootstrapValidator = $("#menu-form").data('bootstrapValidator');
+        if(bootstrapValidator.isValid()){
+        var data=$('#menu-form').serialize();
+        var submitData=decodeURIComponent(data,true);
+        $.ajax({
+            type: "POST",
+            url: "{{url('ajax/role/add')}}",
+            data: submitData,
+            success: function(msg){
+                if(msg.code == '300'){
+                    console.log(msg);
+                    tips_message(msg.message,'warning');
+                }else if(msg.code =='200'){
+                    console.log(msg);
+                    tips_message(msg.message,'success');
+                }else {
+                    console.log(msg);
+                    tips_message(msg.message,'error');
+                }
+            }
+        });
+     }
+    });
+
+    $(document).ready(function() {
+        $('#menu-form')
+            .bootstrapValidator({
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    title: {
+                        message: 'The username is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: '角色不能为空'
+                            },
+                            stringLength: {
+                                min: 4,
+                                max: 20,
+                                message: '4到20个字符'
+                            },
+                        }
+
+                    },
+                    description: {
+                        message: 'The username is not valid',
+                        validators: {
+                            notEmpty: {
+                                message: '描述不能为空'
+                            },
+                            stringLength: {
+                                min: 6,
+                                max: 100,
+                                message: '6到100个字符'
+                            },
+                        }
+                    },
+                }
+            })
+    });
+
+</script>

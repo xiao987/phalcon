@@ -1,0 +1,208 @@
+<div class="breadcrumbs" id="breadcrumbs">
+    <ul class="breadcrumb">
+        <li>
+            <i class="icon-home home-icon"></i>
+            <a href="{{ url('dashboard/index') }}">控制面板</a>
+        </li>
+        <li>
+            <a href="{{ url('menu/index') }}">导航管理</a>
+        </li>
+    </ul>
+</div>
+<div class="page-content">
+
+    <div class="widget-box transparent">
+        <div class="widget-header widget-header-flat">
+            <h4 class="lighter">
+                <i class="icon-star orange"></i>
+                <a href="{{ url('menu/index') }}">导航管理</a>
+                <small>
+                    <i class="icon-double-angle-right"></i>
+                    权限管理
+                </small>
+            </h4>
+            <div class="widget-toolbar">
+                <a href="#" data-action="collapse">
+                    <i class="icon-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+
+
+
+<div class="col-lg-12">
+
+    <form action="#" method="post" class="form-horizontal" id="menu-form">
+        <input type="hidden" name="id" value="{{role}}">
+        <fieldset>
+            <div class="form-group">
+                <label for="menu-parent" class="col-sm-2 control-label">权限菜单</label>
+                <!--div class="col-sm-5">
+                    {% for value in menuList %}
+                    {% if menu is not empty and menu['parent_id'] == value['id'] %}
+                    <tr><input type='checkbox'  value="{{value['id']}}" checked></tr>
+                    {% elseif value['id'] == value['parent_id'] %}
+                    <tr><input  type='checkbox'   value="{{value['id']}}" checked></tr>
+                    {% else %}
+                    <td><input  type='checkbox'  name="{{value['id']}}" {% if rights!="" %}{% for right in rights %} {% if value['id']==right %}  checked {% endif %}{% endfor %}{% endif %} value="{{value['name']}}">
+                    {% endif %}
+
+                    {% if value['parent_id'] > 0 %}
+                     {{ str_repeat('─', (value['level'])*3) }}
+                    {{value['name']}}2<br>
+
+                    {% else %}
+                     {{ str_repeat('─', (value['level'])*3) }}{{value['name']}}1<br>
+                    {% endif %}
+                    </td>
+                    {% endfor %}
+                </div-->
+                <div> 
+                        <table border="1" bordercolor="black" width="300" cellspacing="0" cellpadding="5">  
+                        <tr>
+                        <td>模块组</td>
+                        <td>模块</td>
+                        <td>方法</td>
+                        </tr>
+                        {% for key,top_value in menu_array %}
+                        <tr>  
+                            {% if top_value['second_num'] is not empty %}
+                            <td  rowspan="{{top_value['second_num']}}">
+                            {% else %}
+                            <td>
+                            {% endif %}
+                            <input data-level="{{top_value['level']}}" class="chk_box" type='checkbox' name="top[]" value="{{top_value['id']}}" {{top_value['checked']}} >{{top_value['name']}}</td>  
+                        {% if top_value['second'] is not empty %}
+                            {% for second_value in top_value['second'] %}
+                            {% if loop.first!=true %}
+                            <tr>
+                            {% endif %}
+                            <td> <input data-level="{{second_value['level']}}" class="chk_box top_{{top_value['id']}}" type='checkbox' name="second[{{top_value['id']}}][]" value="{{second_value['id']}}" {{second_value['checked']}} >{{second_value['name']}}</td>  
+                                {% if second_value['third'] is not empty %}
+                                <td>
+                                {% for third_value in second_value['third'] %}
+                                    <input data-level="{{third_value['level']}}" class="chk_box top_{{top_value['id']}} second_{{second_value['id']}}" type='checkbox' name="third[{{top_value['id']}}][{{second_value['id']}}][]" value="{{third_value['id']}}" {{third_value['checked']}} >{{third_value['name']}} 
+                                    {% if loop.last==true %}
+                                    </td>
+                                    </tr>
+                                    {% else %}
+                                    <br/>
+                                    {% endif %}
+                                {% endfor %}
+                                {% else %}
+                                    <td>
+                                        无
+                                    </td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <td>无</td>
+                            <td>无</td>
+                            </tr>
+                        {% endif %}
+                        {% endfor %} 
+                        <tr>
+                            <td colspan="3"> <input type='checkbox' class="chk_box_all" data-level="0" >全选</td>
+                            
+                        </tr>
+                    </table>  
+
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-5">
+                {% if menu['id'] is not empty %}
+                <input type="hidden" name="id" value="{{menu['id']}}" />
+                <button type="button" id="menu-btn" class="btn btn-info btn-sm">保存权限</button>
+                {% else %}
+                <button type="button" id="menu-btn" class="btn btn-info btn-sm">修改权限</button>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
+    <script type="text/javascript">
+        $('#menu-btn').click(function(){
+            var data=$('#menu-form').serialize();
+            var submitData=decodeURIComponent(data,true);
+            $.ajax({
+                type: "POST",
+                url: "{{url('ajax/role/changeAuth')}}",
+                data: submitData,
+                success: function(msg){
+                    if(msg.code == '300'){
+                        tips_message(msg.message,'error');
+                    }else{
+                        tips_message(msg.message,'success');
+                    }
+                }
+            });
+
+        });
+
+        $("input[type='checkbox']").on("change",function(){
+            var level = parseInt($(this).attr('data-level')),val = $(this).val();
+            switch(level)
+            {
+                case 0:
+                    if ($(this).is(':checked')) {
+                        $(".chk_box").each(function () {
+                            $(this).prop('checked',true);
+                        })
+
+                    }
+                    else{
+                        $(".chk_box").each(function () {
+                            $(this).prop('checked',false);
+                        })
+                    }
+                    break;
+                case 1:
+                    if ($(this).is(':checked')) {
+                        $(".top_"+val).each(function () {
+                            $(this).prop('checked',true);
+                        })
+
+                    }
+                    else{
+                        $(".top_"+val).each(function () {
+                            $(this).prop('checked',false);
+                        })
+                    }
+                    break;
+                case 2:
+                    if ($(this).is(':checked')) {
+                        $(".second_"+val).each(function () {
+                            $(this).prop('checked',true);
+                        })
+
+                    }
+                    else{
+                        $(".second_"+val).each(function () {
+                            $(this).prop('checked',false);
+                        })
+                    }
+                    break;
+                case 3:
+                    if ($(this).is(':checked')) {
+                        var class_arr = $(this).attr('class').split(" ");
+                        for(var i=0;i<class_arr.length;i++){
+                            if(class_arr[i]!='chk_box'){
+                                $("."+class_arr[i]).each(function(){
+                                    $('input[value='+class_arr[i].split('_')[1]+']').prop('checked',true);
+                                });
+                            }
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+
+        })
+
+    </script>

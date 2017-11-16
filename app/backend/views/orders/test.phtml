@@ -1,0 +1,13 @@
+<html>
+<h2>holle word</h2>
+<table>
+        {%for role in order%}
+        <tr>
+        <td>{{role.id}}</td>
+        <td>{{role.order_name}}</td>
+            <td><a href="{{url('orders/del?id='~role.id)}}">删除</a></td>
+        </tr>
+        {% endfor %}
+</table>
+
+</html>

@@ -1,0 +1,188 @@
+<div class="breadcrumbs" id="breadcrumbs">
+    <ul class="breadcrumb">
+        <li>
+            <i class="icon-home home-icon"></i>
+            <a href="{{ url('dashboard/index') }}">控制面板</a>
+        </li>
+        <li>
+            <a href="{{ url('menu/index') }}">导航管理</a>
+        </li>
+    </ul>
+</div>
+<div class="page-content">
+    <div class="page-header">
+        <h1>
+            <small>
+                <i class="icon-double-angle-right"></i>
+                {% if user is not empty %}
+                    编辑管理员
+                {% else %}
+                    新增管理员
+                {% endif %}
+            </small>
+        </h1>
+    </div>
+
+    <div class="col-lg-12">
+        <form action="{{url('ajax/admin/edit?id='~id)}}" method="post" class="form-horizontal" id="menu-form">
+            <input type="hidden" name="id" value="{{id}}">
+            <div class="form-group has-feedback">
+                <label for="menu-name" class="col-sm-2 control-label">用户名</label>
+                <div class="col-sm-5">
+                    <input type="text" name="username" {% if user is not empty %}value="{{user.username}}"{% endif %}
+                           class="form-control" id="menu-name" placeholder="请填写用户名">
+                </div>
+            </div>
+            <div class="form-group ">
+                <label for="menu-url" class="col-sm-2 control-label">真实姓名</label>
+                <div class="col-sm-5">
+                    <input type="text" name="realname" {% if user is not empty %}value="{{user.realname}}"{% endif %}
+                           class="form-control" id="menu-url" placeholder="真实姓名">
+                </div>
+            </div>
+            <div class="form-group ">
+                <label for="menu-url" class="col-sm-2 control-label">电话号码</label>
+                <div class="col-sm-5">
+                    <input type="text" name="phone_number" {% if user is not empty %}value="{{user.phone_number}}"{% endif %}
+                           class="form-control" id="menu-url" placeholder="电话号码">
+                </div>
+            </div>
+            <div class="form-group ">
+                <label for="menu-url" class="col-sm-2 control-label">email</label>
+                <div class="col-sm-5">
+                    <input type="text" name="email" {% if user is not empty %}value="{{user.email}}"{% endif %}
+                           class="form-control" id="menu-url" placeholder="邮箱">
+                </div>
+            </div>
+            <div class="form-group ">
+                <label for="menu-url" class="col-sm-2 control-label">详细描述</label>
+                <div class="col-sm-5">
+                    <input type="text" name="intro" {% if user is not empty %}value="{{user.intro}}"{% endif %}
+                           class="form-control" id="menu-url" placeholder="详细描述">
+                </div>
+            </div>
+            <div class="form-group ">
+                <label for="menu-url" class="col-sm-2 control-label">角色</label>
+                <div class="col-sm-5">
+                    <select class="form-control" name="role_id">
+                        <option>请选择</option>
+                        {% for role in roles %}
+                        <option value="{{role['id']}}"   {% if user.role_id==role['id'] %} selected="selected"  {% endif %} >
+                            {{role['title']}}
+                        {% endfor %}
+                    </select>
+
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-5">
+                    {% if menu['id'] is not empty %}
+                        <input type="hidden" name="id" value="{{menu['id']}}" />
+                        <button type="button" id="menu-btn" class="btn btn-info btn-sm">保存管理员</button>
+                    {% else %}
+                        <button type="button" id="menu-btn" class="btn btn-info btn-sm">保存管理员</button>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    $('#menu-btn').click(function(){
+
+        var bootstrapValidator = $("#menu-form").data('bootstrapValidator');
+        bootstrapValidator.validate();
+        if(bootstrapValidator.isValid()){
+            var data=$('#menu-form').serialize();
+            var submitData=decodeURIComponent(data,true);
+            $.ajax({
+                type: "POST",
+                url: "{{url('ajax/admin/edit')}}",
+                data: submitData,
+                success: function(msg){
+                    if(msg.code == '300'){
+                        console.log(msg);
+                        tips_message(msg.message,'warning');
+                    }else if(msg.code =='200'){
+                        console.log(msg);
+                        tips_message(msg.message,'success');
+                    }else {
+                        console.log(msg);
+                        tips_message(msg.message,'error');
+                    }
+                }
+            });
+        }
+    });
+    $(document).ready(function() {
+        $('#menu-form')
+            .bootstrapValidator({
+                message: 'This value is not valid',
+                feedbackIcons: {
+                    valid: 'glyphicon glyphicon-ok',
+                    invalid: 'glyphicon glyphicon-remove',
+                    validating: 'glyphicon glyphicon-refresh'
+                },
+                fields: {
+                    username: {
+                        message: '4到20个字符',
+                        validators: {
+                            notEmpty: {
+                                message: '用户名不能为空'
+                            },
+                            stringLength: {
+                                min: 4,
+                                max: 20,
+                                message: '4到20个字符'
+                            },
+                        }
+
+                    },
+                    realname: {
+                        message: '2到10个字符',
+                        validators: {
+                            notEmpty: {
+                                message: '描述不能为空'
+                            },
+                        }
+                    },
+                    phone_number: {
+                        message: '请输入正确位数的电话号码',
+                        validators: {
+                            notEmpty: {
+                                message: '电话号码不能为空'
+                            },
+                            regexp: {
+                                regexp: /^1[3|4|5|7|8]\d{9}$/,
+                                message: '请输入正确的手机号'
+                            }
+                        }
+                    },
+                    email: {
+                        validators: {
+                            notEmpty: {
+                                message: '邮箱不能为空！'
+                            },
+                            emailAddress: {
+                                message: '请输入正确的email格式'
+                            }
+                        }
+                    },
+                    intro: {
+                        message: '6到100个字符',
+                        validators: {
+                            notEmpty: {
+                                message: '描述不能为空'
+                            },
+                            stringLength: {
+                                min: 6,
+                                max: 100,
+                                message: '6到100个字符'
+                            },
+                        }
+                    },
+
+                }
+            })
+    });
+</script>

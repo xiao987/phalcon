@@ -1,0 +1,172 @@
+<div class="breadcrumbs" id="breadcrumbs">
+    <ul class="breadcrumb">
+        <li>
+            <i class="icon-home home-icon"></i>
+            <a href="{{ url('dashboard/index') }}">控制面板</a>
+        </li>
+        <li>
+            <a href="{{ url('menu/index') }}">导航管理</a>
+        </li>
+    </ul>
+</div>
+<div class="page-content">
+        <div class="btn-panel">
+            {% if auth_list['role/add'] is not empty %}
+            <a href="{{ url('role/add') }}" class="btn btn-success btn-sm" role="button">添加角色</a>
+            {% endif %}
+            {% if auth_list['menu/refresh'] is not empty %}
+            <a href="{{ url('menu/refresh') }}" class="btn btn-pink btn-sm" role="button">清除缓存</a>
+            {% endif %}
+        </div>
+
+
+        <div class="widget-box transparent">
+            <div class="widget-header widget-header-flat">
+                <h4 class="lighter">
+                    <i class="icon-star orange"></i>
+                    <a href="{{ url('menu/index') }}">导航管理</a>
+                    <small>
+                        <i class="icon-double-angle-right"></i>
+                        角色管理
+                    </small>
+                </h4>
+                <div class="widget-toolbar">
+                    <a href="#" data-action="collapse">
+                        <i class="icon-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="widget-body">
+                <div class="widget-main no-padding">
+                    <table class="table table-bordered table-striped table-hover tree-grid" id="menu-table">
+                        <thead>
+                        <tr>
+                            <th>
+                                <i class="icon-caret-right blue"></i>
+                                id
+                            </th>
+                            <th>
+                                <i class="icon-caret-right blue"></i>
+                                名称
+                            </th>
+
+                            <th>
+                                <i class="icon-caret-right blue"></i>
+                                角色描述
+                            </th>
+<!--                            <th>-->
+<!--                                <i class="icon-caret-right blue"></i>-->
+<!--                                权限id-->
+<!--                            </th>-->
+                            <th>
+                                <i class="icon-caret-right blue"></i>
+                                角色创建时间
+                            </th>
+                            <th>
+                                <i class="icon-caret-right blue"></i>
+                                创建者ip
+                            </th>
+
+                            <th>
+                                <i class="icon-caret-right blue"></i>
+                                操作
+                            </th>
+                            <th>&nbsp;</th>
+                        </tr>
+                        </thead>
+                        {%if page.items is defined%}
+
+                            <tbody>
+                            {%for role in page.items%}
+                                    <td>{{role.id}}</td>
+                                    <td>{{role.title}}</td>
+                                    <td>{{role.description}}</td>
+<!--                                    <td>{{role.purviewids}}</td>-->
+                                    <td>{{date('Y-m-d H:i:s',role.create_time)}}</td>
+                                    <td>{{role.create_ip}}</td>
+                                    <td>
+                                        {% if auth_list['role/changeAuth'] is not empty %}
+                                        <a class="btn btn-xs btn-info" href="{{ url('role/changeAuth?id='~role['id']) }}">
+                                            <i class="icon-edit bigger-120"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if auth_list['role/del'] is not empty %}
+                                        <button class="btn btn-xs btn-danger delete-menu" data-url="{{ url('role/del?id='~role['id']) }}">
+                                            <i class="icon-trash bigger-120"></i>
+                                        </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        {% else %}
+                            <tbody>
+                            <tr>
+                                <td colspan="8">暂无数据</td>
+                            </tr>
+                            </tbody>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    <div class="row">
+        <div class="col-sm-2">
+            <p class="pagination" style="line-height: 1.42857;padding: 6px 12px;">
+                <?php echo "第".$page->current, "/", $page->total_pages."页" ?>
+            </p>
+        </div>
+        <div class="col-sm-10 align-right">
+            <nav>
+                <ul class="pagination">
+                    <li><?php echo $this->tag->linkTo("role/index", "首页") ?></li>
+                    <li><?php echo $this->tag->linkTo("role/index?page=" . $page->before, "上一页") ?></li>
+                    <li><?php echo $this->tag->linkTo("role/index?page=" . $page->next, "下一页") ?></li>
+                    <li><?php echo $this->tag->linkTo("role/index?page=" . $page->last, "最后一页") ?></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+    </div>
+<link href="{{ static_url('bootstrap-editable/css/bootstrap-editable.css?_v=')~assetsVersion }}" rel="stylesheet"/>
+<script src="{{ static_url('bootstrap-editable/js/bootstrap-editable.min.js?_v=')~assetsVersion }}"></script>
+<script>
+    $.fn.editable.defaults.mode = 'popup';
+    $('.menu-sort-block').editable({
+        params:function(params){
+            params.sort = params.value;
+            params.id = params.pk;
+            if(params.sort <= 0 || params.sort > 999){
+                params.sort = 999;
+            }
+            return params;
+        },
+        success:function(response, value){
+            if (typeof response !== 'object') response = JSON.parse(response);
+            if(response.code == 1){
+                tips_message(response.message, 'success');
+            }else{
+                tips_message(response.message, 'error');
+            }
+            return true;
+        },
+        error:function(response){
+            tips_message('网络错误，请重试');
+        },
+        display:function(value){
+            if(value <= 0 || value > 999){
+                value = 999;
+            }
+            $(this).html(value);
+        }
+    });
+
+    $('.delete-menu').on('click', function(){
+        var dataUrl = $.trim($(this).attr('data-url'));
+        if(!window.confirm('确定要删除选中菜单吗？此操作不可挽回')){
+            return false;
+        }
+        window.location.href = dataUrl;
+    });
+</script>
